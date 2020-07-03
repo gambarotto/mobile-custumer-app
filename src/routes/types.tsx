@@ -44,6 +44,3 @@ export type PropsStack = {
     TabStackNavigationProp
   >;
 };
-
-//export type PropsStack = StackNavigationProp<Stack>;
-//export type PropsTabStack = StackScreenProps<TabStack>;

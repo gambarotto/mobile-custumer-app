@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Image, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Rating } from 'react-native-elements';
 import Modal from 'react-native-modal';
@@ -10,12 +10,63 @@ import ModalHour from '../../components/Modal/ModalHour';
 import { PropsStack } from '../../routes/types';
 import { colors } from '../../utils/styles';
 
-const DetailScreen: React.FC<PropsStack> = ({ route }) => {
+interface IBarbers {
+  id: number;
+  name: string;
+  email: string;
+  responsibility: string;
+  days_off: number[];
+  job_id: number;
+  schedule_id: number | null;
+}
+
+const DetailScreen: React.FC<PropsStack> = ({ route, navigation }) => {
   const [rating, setRating] = useState(0);
   const [favored, setFavored] = useState(false);
   const [barberIsVisible, setBarberIsVisible] = useState(false);
   const [dayIsVisible, setDayIsVisible] = useState(false);
   const [hourIsVisible, setHourIsVisible] = useState(false);
+  const [barbers, setBarbers] = useState<IBarbers[]>([]);
+  useEffect(() => {
+    setBarbers([
+      {
+        id: 4,
+        name: 'Funcionário 04',
+        email: 'funcionario04@topbarber.com',
+        responsibility: 'Barbeiro',
+        days_off: [3, 5],
+        job_id: 2,
+        schedule_id: null,
+      },
+      {
+        id: 3,
+        name: 'Funcionário 02',
+        email: 'funcionario02@topbarber.com',
+        responsibility: 'Barbeiro',
+        days_off: [2, 4],
+        job_id: 2,
+        schedule_id: 2,
+      },
+      {
+        id: 5,
+        name: 'Funcionário 05',
+        email: 'funcionario05@topbarber.com',
+        responsibility: 'Barbeiro',
+        days_off: [3, 5],
+        job_id: 2,
+        schedule_id: null,
+      },
+      {
+        id: 6,
+        name: 'Funcionário 06',
+        email: 'funcionario06@topbarber.com',
+        responsibility: 'Barbeiro',
+        days_off: [2, 4],
+        job_id: 2,
+        schedule_id: 2,
+      },
+    ]);
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -118,10 +169,13 @@ const DetailScreen: React.FC<PropsStack> = ({ route }) => {
         </TouchableOpacity>
       </View>
       <Modal isVisible={barberIsVisible}>
-        <ModalBarber />
+        <ModalBarber
+          setBarberIsVisible={setBarberIsVisible}
+          barbers={barbers}
+        />
       </Modal>
       <Modal isVisible={hourIsVisible}>
-        <ModalHour />
+        <ModalHour setHourIsVisible={setHourIsVisible} />
       </Modal>
     </View>
   );
@@ -130,7 +184,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.primaryColor,
-    //justifyContent: 'space-between',
+    justifyContent: 'space-between',
+    paddingBottom: 20,
   },
   cntnrImage: {
     height: '30%',

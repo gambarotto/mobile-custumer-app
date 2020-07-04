@@ -13,7 +13,6 @@ import Modal from 'react-native-modal';
 import ModalMainTab from '../Modal/ModalMainTab';
 
 import { colors } from '../../utils/styles';
-import { PropsStack, LoginStackNavigationProp } from '../../routes/types';
 
 interface Barbershop {
   id: number;
@@ -117,12 +116,12 @@ const styles = StyleSheet.create({
   },
   address: {
     color: colors.secondaryColor,
-    fontSize: 16,
+    fontSize: 14,
     marginLeft: 5,
   },
   phone: {
     color: colors.secondaryColor,
-    fontSize: 16,
+    fontSize: 14,
     marginLeft: 5,
   },
   ratingContainer: {

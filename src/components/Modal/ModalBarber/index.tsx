@@ -18,11 +18,27 @@ interface IBarbers {
   job_id: number;
   schedule_id: number | null;
 }
+interface IBarber {
+  id: number;
+  name: string;
+}
+interface IBarberSelected {
+  setBarberSelected: Dispatcher<IBarber>;
+  barberSelected: IBarber;
+}
 
 const ModalBarber: React.FC<{
   setBarberIsVisible: Dispatcher<boolean>;
   barbers: IBarbers[];
-}> = ({ setBarberIsVisible, barbers }) => {
+  setBarberSelectedFunc: IBarberSelected;
+}> = ({ setBarberIsVisible, barbers, setBarberSelectedFunc }) => {
+  function barberFunc(item: IBarber) {
+    setBarberSelectedFunc.setBarberSelected({
+      id: item.id,
+      name: item.name,
+    });
+    setBarberIsVisible(false);
+  }
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Barbeiro</Text>
@@ -30,7 +46,9 @@ const ModalBarber: React.FC<{
         data={barbers}
         keyExtractor={item => String(item.id)}
         renderItem={({ item }) => (
-          <TouchableOpacity style={styles.cntnrItem}>
+          <TouchableOpacity
+            style={styles.cntnrItem}
+            onPress={() => barberFunc(item)}>
             <Text style={styles.textItem}>{item.name}</Text>
           </TouchableOpacity>
         )}

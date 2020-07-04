@@ -10,8 +10,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 
 import MainCardBarber from '../../components/MainCardBarber';
 import { colors } from '../../utils/styles';
-import { PropsStack } from '../../routes/types';
-// import { Container } from './styles';
+
 interface Barbershop {
   id: number;
   barbershopUrl: string;
@@ -25,7 +24,7 @@ interface Barbershop {
   rating: number;
 }
 
-const MainScreen: React.FC<PropsStack> = ({ navigation }) => {
+const MainScreen: React.FC = () => {
   const [barbershop, setBarbershop] = useState<Barbershop[]>([]);
   useEffect(() => {
     if (barbershop.length === 0) {
@@ -85,9 +84,7 @@ const MainScreen: React.FC<PropsStack> = ({ navigation }) => {
       <FlatList
         data={barbershop}
         keyExtractor={item => String(item.id)}
-        renderItem={({ item }) => (
-          <MainCardBarber barbershop={item} navigation={navigation} />
-        )}
+        renderItem={({ item }) => <MainCardBarber barbershop={item} />}
       />
     </SafeAreaView>
   );
@@ -97,7 +94,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.primaryColorRgba,
-    padding: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 20,
     paddingTop: 35,
   },
   inputContainer: {

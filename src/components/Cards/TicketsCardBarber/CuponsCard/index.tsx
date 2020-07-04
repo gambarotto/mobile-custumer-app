@@ -39,13 +39,13 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   containerImage: {
-    height: 70,
-    width: 70,
-    borderRadius: 35,
+    height: '50%',
+    width: '20%',
+    borderRadius: 50,
   },
   image: {
-    height: 70,
-    width: 70,
+    height: '100%',
+    width: '100%',
     borderRadius: 35,
   },
 });

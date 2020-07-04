@@ -6,6 +6,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 
 import ModalBarber from '../../components/Modal/ModalBarber';
 import ModalHour from '../../components/Modal/ModalHour';
+import ModalCalendar from '../../components/Modal/ModalCalendar';
 
 import { PropsStack } from '../../routes/types';
 import { colors } from '../../utils/styles';
@@ -19,14 +20,35 @@ interface IBarbers {
   job_id: number;
   schedule_id: number | null;
 }
+interface IBarber {
+  id: number;
+  name: string;
+}
+interface IDay {
+  dateString: string;
+  day: number;
+  month: number;
+  timestamp: number;
+  year: number;
+}
+interface IData {
+  day: string | ''; //'2020-06-18T17:00:00-03:00'
+  hour: string;
+  employeeId: number;
+  custumerId: number;
+}
 
-const DetailScreen: React.FC<PropsStack> = ({ route, navigation }) => {
+const DetailScreen: React.FC<PropsStack> = ({ route }) => {
   const [rating, setRating] = useState(0);
   const [favored, setFavored] = useState(false);
   const [barberIsVisible, setBarberIsVisible] = useState(false);
   const [dayIsVisible, setDayIsVisible] = useState(false);
   const [hourIsVisible, setHourIsVisible] = useState(false);
   const [barbers, setBarbers] = useState<IBarbers[]>([]);
+  const [barberSelected, setBarberSelected] = useState<IBarber>({} as IBarber);
+  const [daySelected, setDaySelected] = useState<IDay | any>();
+  const [hourSelected, setHourSelected] = useState<string>('');
+
   useEffect(() => {
     setBarbers([
       {
@@ -67,7 +89,9 @@ const DetailScreen: React.FC<PropsStack> = ({ route, navigation }) => {
       },
     ]);
   }, []);
-
+  useEffect(() => {
+    console.log(JSON.stringify(barberSelected));
+  }, [barberSelected]);
   return (
     <View style={styles.container}>
       <View style={styles.cntnrImage}>
@@ -93,7 +117,6 @@ const DetailScreen: React.FC<PropsStack> = ({ route, navigation }) => {
           </Text>
         </View>
       </View>
-      <Text style={styles.textAvaliations}>Avaliação</Text>
       <View style={styles.cntnrRatings}>
         <View style={styles.cntnrRating}>
           <Text style={styles.textRating}>Sua avaliação para Loja</Text>
@@ -102,7 +125,7 @@ const DetailScreen: React.FC<PropsStack> = ({ route, navigation }) => {
             ratingCount={5}
             startingValue={rating}
             showRating={false}
-            imageSize={30}
+            imageSize={20}
             onFinishRating={value => setRating(value)}
             ratingBackgroundColor={colors.secondaryColor}
             ratingColor="#992929"
@@ -116,7 +139,7 @@ const DetailScreen: React.FC<PropsStack> = ({ route, navigation }) => {
             ratingCount={5}
             startingValue={4}
             showRating={false}
-            imageSize={30}
+            imageSize={20}
             ratingBackgroundColor={colors.secondaryColor}
             ratingColor="#992929"
             readonly={true}
@@ -142,7 +165,7 @@ const DetailScreen: React.FC<PropsStack> = ({ route, navigation }) => {
             <TouchableOpacity
               style={styles.buttonBarber}
               onPress={() => setBarberIsVisible(true)}>
-              <Text style={styles.textButtons}>Diego</Text>
+              <Text style={styles.textButtons}>{barberSelected.name}</Text>
             </TouchableOpacity>
           </View>
           <View style={styles.cntnrButtonDay}>
@@ -150,7 +173,7 @@ const DetailScreen: React.FC<PropsStack> = ({ route, navigation }) => {
             <TouchableOpacity
               style={styles.buttonDay}
               onPress={() => setDayIsVisible(true)}>
-              <Text style={styles.textButtons}>22/07/20</Text>
+              <Text style={styles.textButtons}>{daySelected?.dateString}</Text>
             </TouchableOpacity>
           </View>
           <View style={styles.cntnrButtonHour}>
@@ -158,7 +181,7 @@ const DetailScreen: React.FC<PropsStack> = ({ route, navigation }) => {
             <TouchableOpacity
               style={styles.buttonHour}
               onPress={() => setHourIsVisible(true)}>
-              <Text style={styles.textButtons}>09:00</Text>
+              <Text style={styles.textButtons}>{hourSelected}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -172,10 +195,20 @@ const DetailScreen: React.FC<PropsStack> = ({ route, navigation }) => {
         <ModalBarber
           setBarberIsVisible={setBarberIsVisible}
           barbers={barbers}
+          setBarberSelectedFunc={{ setBarberSelected, barberSelected }}
         />
       </Modal>
       <Modal isVisible={hourIsVisible}>
-        <ModalHour setHourIsVisible={setHourIsVisible} />
+        <ModalHour
+          setHourIsVisible={setHourIsVisible}
+          setHourSelectedFunc={{ hourSelected, setHourSelected }}
+        />
+      </Modal>
+      <Modal isVisible={dayIsVisible}>
+        <ModalCalendar
+          setDayIsVisible={setDayIsVisible}
+          setDaySelectedFunc={{ setDaySelected, daySelected }}
+        />
       </Modal>
     </View>
   );
@@ -196,7 +229,8 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   cntnrInfo: {
-    height: 100,
+    flex: 1,
+    maxHeight: 90,
     width: '100%',
     //backgroundColor: 'blue',
   },
@@ -214,8 +248,6 @@ const styles = StyleSheet.create({
   },
   cntnrFavTrue: {
     backgroundColor: '#992929',
-    borderWidth: 1,
-    //borderColor: '#992929',
   },
   cntnrTextInfos: {
     marginTop: -20,
@@ -234,16 +266,10 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   cntnrRatings: {
+    marginTop: 10,
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-  },
-  textAvaliations: {
-    marginVertical: 16,
-    alignSelf: 'center',
-    fontFamily: 'Comfortaa-Bold',
-    fontSize: 16,
-    color: colors.secondaryColor,
   },
   cntnrRating: {
     justifyContent: 'center',
@@ -341,7 +367,7 @@ const styles = StyleSheet.create({
   },
   textButtons: {
     fontFamily: 'Anton-Regular',
-    fontSize: 20,
+    fontSize: 12,
     color: colors.secondaryColor,
   },
   cntnrConfirmButton: {

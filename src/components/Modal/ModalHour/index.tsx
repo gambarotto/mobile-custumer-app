@@ -5,9 +5,14 @@ import { colors } from '../../../utils/styles';
 
 type Dispatcher<S> = Dispatch<SetStateAction<S>>;
 
-const ModalHour: React.FC<{ setHourIsVisible: Dispatcher<boolean> }> = ({
-  setHourIsVisible,
-}) => {
+interface IHourSelected {
+  setHourSelected: Dispatcher<string>;
+  hourSelected: string;
+}
+const ModalHour: React.FC<{
+  setHourIsVisible: Dispatcher<boolean>;
+  setHourSelectedFunc: IHourSelected;
+}> = ({ setHourIsVisible, setHourSelectedFunc }) => {
   const [schedules, setSchedules] = useState<string[]>([
     '09:00',
     '09:30',
@@ -34,10 +39,21 @@ const ModalHour: React.FC<{ setHourIsVisible: Dispatcher<boolean> }> = ({
     '20:00',
     '20:30',
   ]);
+  const [hour, setHour] = useState<string>('');
 
+  function confirmButton() {
+    setHourSelectedFunc.setHourSelected(hour);
+    setHourIsVisible(false);
+  }
   function item(schedule: string) {
     return (
-      <TouchableOpacity key={schedule} style={styles.cntnrItem}>
+      <TouchableOpacity
+        key={schedule}
+        style={[
+          styles.cntnrItem,
+          schedule === hour && styles.cntnrItemSelected,
+        ]}
+        onPress={() => setHour(schedule)}>
         <Text style={styles.textItem}>{schedule}</Text>
       </TouchableOpacity>
     );
@@ -61,7 +77,7 @@ const ModalHour: React.FC<{ setHourIsVisible: Dispatcher<boolean> }> = ({
           <Text style={styles.textButtonBack}>Voltar</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={() => setHourIsVisible(false)}
+          onPress={() => confirmButton()}
           style={styles.cntnrButton}>
           <Text style={styles.textButton}>Confirmar</Text>
         </TouchableOpacity>
@@ -99,6 +115,9 @@ const styles = StyleSheet.create({
     margin: 5,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  cntnrItemSelected: {
+    backgroundColor: colors.orange,
   },
   textItem: {
     fontFamily: 'Anton-Regular',

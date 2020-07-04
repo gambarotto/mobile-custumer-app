@@ -10,7 +10,6 @@ import {
 import { useNavigation } from '@react-navigation/native';
 
 import { colors } from '../../../utils/styles';
-import { PropsStack } from '../../../routes/types';
 interface Barbershop {
   id: number;
   barbershopUrl: string;
@@ -172,7 +171,6 @@ const ModalMainTab: React.FC<{
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    marginVertical: '6%',
     backgroundColor: colors.primaryColor,
     borderRadius: 8,
     justifyContent: 'space-between',

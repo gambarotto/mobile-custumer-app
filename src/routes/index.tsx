@@ -1,6 +1,9 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import {
+  createStackNavigator,
+  CardStyleInterpolators,
+} from '@react-navigation/stack';
 import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
@@ -40,7 +43,7 @@ function TabMainScreen() {
         },
       })}
       backBehavior="initialRoute"
-      activeColor="#fff"
+      activeColor={colors.orange}
       inactiveColor="#d7d1cb"
       barStyle={styleTab}
       keyboardHidesNavigationBar={true}>
@@ -83,7 +86,11 @@ const styleTab = {
 const Routes = () => {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Main">
+      <Stack.Navigator
+        initialRouteName="Main"
+        screenOptions={{
+          cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+        }}>
         <Stack.Screen
           name="Login"
           component={LoginScreen}
@@ -91,7 +98,13 @@ const Routes = () => {
             headerShown: false,
           }}
         />
-        <Stack.Screen name="CreateAccount" component={CreateAccountScreen} />
+        <Stack.Screen
+          name="CreateAccount"
+          component={CreateAccountScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
         <Stack.Screen
           name="Detail"
           component={DetailScreen}

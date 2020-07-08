@@ -22,8 +22,6 @@ const TicketsScreen: React.FC = () => {
   const [tickets, setTickets] = useState<Barbershop[]>([]);
 
   useEffect(() => {
-    console.log('oooiii');
-
     setTickets([
       {
         id: 1,

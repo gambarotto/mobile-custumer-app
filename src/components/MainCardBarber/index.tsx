@@ -33,10 +33,6 @@ const MainCardBarber: React.FC<{
 }> = ({ barbershop }) => {
   const [isVisible, setIsVisible] = useState(false);
 
-  useEffect(() => {
-    console.log('ert');
-  }, [isVisible]);
-
   return (
     <TouchableOpacity
       style={styles.container}
@@ -90,6 +86,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.secondaryColorRgba,
     elevation: 5,
+    marginBottom: 2,
   },
   imageContainer: {
     height: 88,

@@ -62,10 +62,10 @@ const BarbersPictures: React.FC = () => {
 
   function createRows(data: item[], col: number) {
     const rows = Math.floor(data.length / col);
-    console.log('rowws ', rows);
+    // console.log('rowws ', rows);
 
     let lastRowElements = data.length - rows * col;
-    console.log('last ', lastRowElements);
+    // console.log('last ', lastRowElements);
 
     while (lastRowElements !== col) {
       data.push({

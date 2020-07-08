@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useContext } from 'react';
 import {
   ImageBackground,
   View,
@@ -9,10 +9,26 @@ import {
 import Icon from 'react-native-vector-icons/Feather';
 import { RectButton } from 'react-native-gesture-handler';
 
+import AuthContext from '../../contexts/auth';
 import { PropsStack } from '../../routes/types';
 //TODO keyboardAvoidingView IOS
+interface ILogin {
+  email: string;
+  password: string;
+}
 
 const LoginScreen: React.FC<PropsStack> = ({ navigation }) => {
+  const [data, setData] = useState<ILogin>({} as ILogin);
+  const { signIn } = useContext(AuthContext);
+
+  function handleInputLogin(value: string, type: string) {
+    setData({ ...data, [type]: value });
+  }
+
+  function handleLogin() {
+    signIn(data);
+  }
+
   return (
     <ImageBackground
       style={styles.container}
@@ -28,8 +44,9 @@ const LoginScreen: React.FC<PropsStack> = ({ navigation }) => {
         <TextInput
           style={styles.textInput}
           placeholder="Email"
-          placeholderTextColor="#ccc"
-          onChangeText={() => {}}
+          placeholderTextColor="#555"
+          value={data.email}
+          onChangeText={text => handleInputLogin(text, 'email')}
         />
       </View>
       <View style={styles.inputContainer}>
@@ -37,11 +54,11 @@ const LoginScreen: React.FC<PropsStack> = ({ navigation }) => {
         <TextInput
           style={styles.textInput}
           placeholder="Senha"
-          placeholderTextColor="#ccc"
-          onChangeText={() => {}}
+          placeholderTextColor="#555"
+          onChangeText={text => handleInputLogin(text, 'password')}
         />
       </View>
-      <RectButton style={styles.button}>
+      <RectButton style={styles.button} onPress={handleLogin}>
         <Text style={styles.textButton}>ENTRAR</Text>
       </RectButton>
       <Text

@@ -18,7 +18,7 @@ interface item {
 }
 
 const FavoritiesCardBarber: React.FC = () => {
-  const [services, setServices] = useState<item[]>([
+  const [services] = useState<item[]>([
     { id: '1', name: 'Corte Cabelo' },
     { id: '2', name: 'Hidratação' },
     { id: '3', name: 'Corte Barba' },

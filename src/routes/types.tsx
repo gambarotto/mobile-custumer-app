@@ -11,6 +11,15 @@ import { MaterialBottomTabNavigationProp } from '@react-navigation/material-bott
 export type StackParam = {
   Login: undefined;
   CreateAccount: undefined;
+  Main: undefined;
+};
+export type TabStack = {
+  Main: undefined;
+  Favorities: undefined;
+  Schedules: undefined;
+  Tickets: undefined;
+};
+export type StackTabDetail = {
   Detail: {
     data: {
       id: number;
@@ -25,16 +34,12 @@ export type StackParam = {
       rating: number;
     };
   };
-  Main: undefined;
+  Main: TabStack;
 };
-export type TabStack = {
-  Main: undefined;
-  Favorities: undefined;
-  Schedules: undefined;
-  Tickets: undefined;
-};
-export type DetailStackRouteProp = RouteProp<StackParam, 'Detail'>;
+
+export type DetailStackRouteProp = RouteProp<StackTabDetail, 'Detail'>;
 type LoginStackNavigationProp = StackNavigationProp<StackParam>;
+type DetailStackNavigationProp = StackNavigationProp<StackTabDetail>;
 type TabStackNavigationProp = MaterialBottomTabNavigationProp<TabStack>;
 
 export type PropsStack = {
@@ -43,4 +48,8 @@ export type PropsStack = {
     LoginStackNavigationProp,
     TabStackNavigationProp
   >;
+};
+export type PropsStackDetailTab = {
+  route: DetailStackRouteProp;
+  navigation: StackTabDetail;
 };

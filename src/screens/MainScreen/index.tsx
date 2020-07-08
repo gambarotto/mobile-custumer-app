@@ -26,9 +26,12 @@ interface Barbershop {
 
 const MainScreen: React.FC = () => {
   const [barbershop, setBarbershop] = useState<Barbershop[]>([]);
+  const [barbershopSearched, setBarbershopSearched] = useState<Barbershop[]>(
+    []
+  );
+
   useEffect(() => {
     if (barbershop.length === 0) {
-      console.log('oooiii main');
       setBarbershop([
         {
           id: 1,
@@ -70,6 +73,19 @@ const MainScreen: React.FC = () => {
     }
   }, [barbershop]);
 
+  function searchedText(text: string) {
+    const textUp = text.toUpperCase();
+    const arrSearched = barbershop.map(shop => {
+      if (shop.name.toUpperCase().includes(textUp)) {
+        return shop;
+      }
+    });
+    const filtered = arrSearched.filter(
+      shop => shop !== undefined
+    ) as Barbershop[];
+    setBarbershopSearched(filtered);
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.inputContainer}>
@@ -78,11 +94,13 @@ const MainScreen: React.FC = () => {
           style={styles.input}
           placeholder="Pesquisar..."
           placeholderTextColor="#888"
-          onChangeText={() => {}}
+          onChangeText={text => searchedText(text)}
         />
       </View>
       <FlatList
-        data={barbershop}
+        data={
+          barbershopSearched?.length !== 0 ? barbershopSearched : barbershop
+        }
         keyExtractor={item => String(item.id)}
         renderItem={({ item }) => <MainCardBarber barbershop={item} />}
       />

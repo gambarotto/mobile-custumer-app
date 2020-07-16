@@ -1,13 +1,19 @@
 import React from 'react';
-import { SafeAreaView, StyleSheet } from 'react-native';
+import { SafeAreaView, FlatList, StyleSheet } from 'react-native';
 
+import { useCustumer } from '../../contexts/custumer';
 import FavoritiesCardBarber from '../../components/FavoritiesCardBarber';
 import { colors } from '../../utils/styles';
 
 const FavoritiesScreen: React.FC = () => {
+  const { favorities } = useCustumer();
   return (
     <SafeAreaView style={styles.container}>
-      <FavoritiesCardBarber />
+      <FlatList
+        data={favorities}
+        keyExtractor={item => String(item.id)}
+        renderItem={({ item }) => <FavoritiesCardBarber favorite={item} />}
+      />
     </SafeAreaView>
   );
 };

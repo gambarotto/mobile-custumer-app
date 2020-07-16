@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Image,
@@ -12,24 +12,13 @@ import Modal from 'react-native-modal';
 
 import ModalMainTab from '../Modal/ModalMainTab';
 
+import { IBarbershop } from '../../contexts/types-barbershop';
 import { colors } from '../../utils/styles';
 
-interface Barbershop {
-  id: number;
-  barbershopUrl: string;
-  name: string;
-  address: {
-    street: string;
-    number: string;
-    city: string;
-  };
-  phone: string;
-  rating: number;
-}
 //TODO limitar o n° de caracteres no endereço
 
 const MainCardBarber: React.FC<{
-  barbershop: Barbershop;
+  barbershop: IBarbershop;
 }> = ({ barbershop }) => {
   const [isVisible, setIsVisible] = useState(false);
 
@@ -39,7 +28,7 @@ const MainCardBarber: React.FC<{
       onPress={() => setIsVisible(true)}>
       <View style={styles.imageContainer}>
         <Image
-          source={barbershop.barbershopUrl}
+          source={{ uri: barbershop.image.url }}
           resizeMode="cover"
           borderRadius={44}
           style={styles.image}
@@ -51,13 +40,13 @@ const MainCardBarber: React.FC<{
           <Text style={styles.address}>
             {`${barbershop.address.street}, ${barbershop.address.number} -  ${barbershop.address.city}`}
           </Text>
-          <Text style={styles.phone}>{barbershop.phone}</Text>
+          <Text style={styles.phone}>{barbershop.tel}</Text>
         </View>
         <View style={styles.ratingContainer}>
           <Rating
             type="custom"
             ratingCount={5}
-            startingValue={barbershop.rating}
+            startingValue={barbershop.rating.rating}
             showRating={false}
             imageSize={16}
             ratingBackgroundColor={colors.primaryColorRgba}
@@ -67,7 +56,7 @@ const MainCardBarber: React.FC<{
           />
         </View>
       </View>
-      <Modal isVisible={isVisible}>
+      <Modal isVisible={isVisible} animationIn="zoomIn" animationOut="zoomOut">
         <ModalMainTab setIsVisible={setIsVisible} barbershop={barbershop} />
       </Modal>
     </TouchableOpacity>

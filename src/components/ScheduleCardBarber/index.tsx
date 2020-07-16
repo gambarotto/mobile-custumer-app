@@ -9,36 +9,47 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { format, isBefore } from 'date-fns';
+import pt from 'date-fns/locale/pt-BR';
 
+//import { parseFromTimeZone } from 'date-fns-timezone';
+
+import { IAppointment } from '../../contexts/types-custumer';
 import { colors } from '../../utils/styles';
 
-interface IAppointments {
-  barberShopUrl: string;
-  avatar: string;
-  name: string;
-  day: string;
-  barber: string;
-}
+const ScheduleCardBarber: React.FC<{ item: IAppointment }> = ({ item }) => {
+  function parseDate() {
+    const dateParsed = new Date(item.date);
+    if (isBefore(dateParsed, new Date())) {
+      return format(dateParsed, "'Foi' dd'/'MM - hh:mm BB'", {
+        locale: pt,
+      });
+    }
+    return format(dateParsed, "'Dia' dd '-' hh:mm BB'", { locale: pt });
+  }
 
-const ScheduleCardBarber: React.FC<{ item: IAppointments }> = ({ item }) => {
   return (
     <ImageBackground
       style={styles.container}
       imageStyle={styles.imageBackgroung}
-      source={item.barberShopUrl}>
+      source={{ uri: item.store.image.url }}>
       <LinearGradient
         colors={['rgba(0,0,0,0.5)', 'rgba(0,0,0,1)']}
         style={styles.containerInfos}>
         <View style={styles.containerImage}>
-          <Image style={styles.image} source={item.avatar} />
+          <Image
+            style={styles.image}
+            source={{ uri: item.employee.avatar.url }}
+          />
         </View>
         <View style={styles.infosContainer}>
-          <Text style={styles.title}>{item.name}</Text>
+          <Text style={styles.title}>{item.store.name}</Text>
           <Text style={styles.agendamento}>Agendamento:</Text>
-          <Text
-            style={styles.schedule}>{`${item.day}, com ${item.barber}`}</Text>
+          <Text style={styles.schedule}>{`${parseDate()}, com ${
+            item.employee.name
+          }`}</Text>
         </View>
-        <TouchableOpacity style={styles.buttom}>
+        <TouchableOpacity style={styles.buttom} onPress={parseDate}>
           <Icon name="cancel" size={25} color={colors.secondaryColor} />
         </TouchableOpacity>
       </LinearGradient>
@@ -67,6 +78,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 8,
     borderBottomRightRadius: 8,
     alignItems: 'center',
+    justifyContent: 'space-between',
     flexDirection: 'row',
   },
   containerImage: {
@@ -101,9 +113,8 @@ const styles = StyleSheet.create({
   },
   buttom: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 10,
+    alignItems: 'flex-end',
+    marginHorizontal: 2,
   },
   textButtom: {
     fontFamily: 'Comfortaa-Regular',

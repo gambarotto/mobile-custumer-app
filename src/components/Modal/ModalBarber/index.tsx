@@ -3,25 +3,14 @@ import {
   View,
   FlatList,
   Text,
+  Image,
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
 import { colors } from '../../../utils/styles';
-
+import { IBarber } from '../../../contexts/types-barber';
 type Dispatcher<S> = Dispatch<SetStateAction<S>>;
-interface IBarbers {
-  id: number;
-  name: string;
-  email: string;
-  responsibility: string;
-  days_off: number[];
-  job_id: number;
-  schedule_id: number | null;
-}
-interface IBarber {
-  id: number;
-  name: string;
-}
+
 interface IBarberSelected {
   setBarberSelected: Dispatcher<IBarber>;
   barberSelected: IBarber;
@@ -29,13 +18,12 @@ interface IBarberSelected {
 
 const ModalBarber: React.FC<{
   setBarberIsVisible: Dispatcher<boolean>;
-  barbers: IBarbers[];
+  barbers: IBarber[];
   setBarberSelectedFunc: IBarberSelected;
 }> = ({ setBarberIsVisible, barbers, setBarberSelectedFunc }) => {
   function barberFunc(item: IBarber) {
     setBarberSelectedFunc.setBarberSelected({
-      id: item.id,
-      name: item.name,
+      ...item,
     });
     setBarberIsVisible(false);
   }
@@ -48,8 +36,14 @@ const ModalBarber: React.FC<{
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.cntnrItem}
+            activeOpacity={0.6}
             onPress={() => barberFunc(item)}>
-            <Text style={styles.textItem}>{item.name}</Text>
+            <View style={styles.avatarContainer}>
+              <Image style={styles.avatar} source={{ uri: item.avatar.url }} />
+            </View>
+            <View style={styles.containerText}>
+              <Text style={styles.textItem}>{item.name}</Text>
+            </View>
           </TouchableOpacity>
         )}
         style={styles.flatlist}
@@ -65,9 +59,7 @@ const ModalBarber: React.FC<{
 
 const styles = StyleSheet.create({
   container: {
-    //height: '30%',
-    //width: '100%',
-    padding: 10,
+    padding: 20,
     backgroundColor: colors.primaryColor,
     borderRadius: 4,
     justifyContent: 'center',
@@ -84,12 +76,44 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   cntnrItem: {
-    height: 50,
-    width: '100%',
+    height: 70,
+    width: '80%',
     paddingHorizontal: 10,
     margin: 2,
-    borderRadius: 8,
+    borderRadius: 25,
+    //dborderWidth: 2,
+    borderColor: colors.secondaryColor,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'center',
+    marginBottom: 20,
+  },
+  avatarContainer: {
+    height: 70,
+    width: 70,
+    borderColor: colors.secondaryColor,
+    borderRadius: 35,
+    borderWidth: 3,
+    zIndex: 1,
+  },
+  avatar: {
+    height: '100%',
+    width: '100%',
+    borderRadius: 35,
+    borderWidth: 2,
+    zIndex: 1,
+  },
+  containerText: {
+    flex: 1,
+    paddingLeft: 20,
+    paddingRight: 10,
+    borderWidth: 2,
     backgroundColor: colors.secondaryColor,
+    //borderColor: colors.secondaryColor,
+    borderTopRightRadius: 20,
+    borderBottomRightRadius: 20,
+    marginLeft: -8,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -102,7 +126,7 @@ const styles = StyleSheet.create({
     height: 60,
     width: '100%',
     backgroundColor: colors.secondaryColor,
-    borderRadius: 4,
+    borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
   },

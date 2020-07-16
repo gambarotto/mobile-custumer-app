@@ -1,75 +1,77 @@
 import React, { useState, Dispatch, SetStateAction } from 'react';
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 
+import { IBarber, IAvailables } from '../../../contexts/types-barber';
 import { colors } from '../../../utils/styles';
 
 type Dispatcher<S> = Dispatch<SetStateAction<S>>;
+interface IDay {
+  dateString: string;
+  day: number;
+  month: number;
+  timestamp: number;
+  year: number;
+}
 
 interface IHourSelected {
-  setHourSelected: Dispatcher<string>;
-  hourSelected: string;
+  setHourSelected: Dispatcher<IAvailables>;
+  hourSelected: IAvailables;
+  schedule: IAvailables[];
 }
 const ModalHour: React.FC<{
   setHourIsVisible: Dispatcher<boolean>;
   setHourSelectedFunc: IHourSelected;
-}> = ({ setHourIsVisible, setHourSelectedFunc }) => {
-  const [schedules, setSchedules] = useState<string[]>([
-    '09:00',
-    '09:30',
-    '10:00',
-    '10:30',
-    '11:00',
-    '11:30',
-    '12:00',
-    '12:30',
-    '13:00',
-    '13:30',
-    '14:00',
-    '14:30',
-    '15:00',
-    '15:30',
-    '16:00',
-    '16:30',
-    '17:00',
-    '17:30',
-    '18:00',
-    '18:30',
-    '19:00',
-    '19:30',
-    '20:00',
-    '20:30',
-  ]);
-  const [hour, setHour] = useState<string>('');
+  barberSelected: IBarber;
+}> = ({ setHourIsVisible, setHourSelectedFunc, barberSelected }) => {
+  const [hour, setHour] = useState<IAvailables>(
+    setHourSelectedFunc.hourSelected
+  );
 
   function confirmButton() {
     setHourSelectedFunc.setHourSelected(hour);
     setHourIsVisible(false);
   }
-  function item(schedule: string) {
+  // eslint-disable-next-line no-shadow
+  function item(schedule: IAvailables) {
     return (
       <TouchableOpacity
-        key={schedule}
+        key={schedule.time}
+        disabled={schedule.available ? false : true}
         style={[
           styles.cntnrItem,
-          schedule === hour && styles.cntnrItemSelected,
+          schedule.time === hour.time && styles.cntnrItemSelected,
+          !schedule.available && styles.cntnrItemBusy,
         ]}
         onPress={() => setHour(schedule)}>
-        <Text style={styles.textItem}>{schedule}</Text>
+        <Text
+          style={[styles.textItem, !schedule.available && styles.textItemBusy]}>
+          {schedule.time}
+        </Text>
       </TouchableOpacity>
     );
   }
   function Hours() {
     const arr = [];
-    for (let i = 0; i < schedules.length; i++) {
-      arr.push(item(schedules[i]));
+    if (setHourSelectedFunc.schedule.length > 0) {
+      for (let i = 0; i < setHourSelectedFunc.schedule.length; i++) {
+        arr.push(item(setHourSelectedFunc.schedule[i]));
+      }
     }
     return arr;
   }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Selecione o horário</Text>
-      <View style={styles.cntnerHours}>{Hours()}</View>
+      <Text style={styles.title}>Horários Disponíveis</Text>
+      <Text style={styles.description}>Selecione o horário desejado</Text>
+      {setHourSelectedFunc.schedule.length <= 0 ? (
+        <Text
+          style={
+            styles.textItemDayOff
+          }>{`${barberSelected.name} estará de folga nesse dia`}</Text>
+      ) : (
+        <View style={styles.cntnerHours}>{Hours()}</View>
+      )}
       <View style={styles.cntnrButtons}>
         <TouchableOpacity
           onPress={() => setHourIsVisible(false)}
@@ -90,7 +92,7 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.primaryColor,
     borderRadius: 8,
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     alignItems: 'center',
     padding: 10,
   },
@@ -98,7 +100,13 @@ const styles = StyleSheet.create({
     fontFamily: 'Anton-Regular',
     fontSize: 20,
     color: colors.secondaryColor,
-    marginBottom: 10,
+    marginBottom: 15,
+  },
+  description: {
+    fontFamily: 'Comfortaa-Regular',
+    color: colors.secondaryColor,
+    fontSize: 12,
+    marginBottom: 5,
   },
   cntnerHours: {
     padding: 10,
@@ -108,10 +116,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cntnrItem: {
-    height: 40,
-    width: 60,
+    height: 50,
+    width: 50,
     backgroundColor: colors.secondaryColor,
-    borderRadius: 4,
+    borderRadius: 30,
     margin: 5,
     justifyContent: 'center',
     alignItems: 'center',
@@ -119,10 +127,23 @@ const styles = StyleSheet.create({
   cntnrItemSelected: {
     backgroundColor: colors.orange,
   },
+  cntnrItemBusy: {
+    backgroundColor: colors.primaryColor,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  textItemBusy: {
+    color: '#333',
+  },
   textItem: {
     fontFamily: 'Anton-Regular',
     fontSize: 16,
     color: colors.primaryColor,
+  },
+  textItemDayOff: {
+    fontFamily: 'Comfortaa-Regular',
+    fontSize: 16,
+    color: colors.secondaryColor,
   },
   cntnrButtons: {
     height: 70,
@@ -145,7 +166,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.secondaryColor,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 4,
+    borderRadius: 35,
   },
   textButton: {
     fontFamily: 'Anton-Regular',

@@ -1,77 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useContext } from 'react';
 import {
   SafeAreaView,
   View,
+  Text,
   TextInput,
   FlatList,
   StyleSheet,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
+import AppContext from '../../contexts/barbershops';
+import { useAuth } from '../../contexts/auth';
+import { IBarbershop } from '../../contexts/types-barbershop';
 import MainCardBarber from '../../components/MainCardBarber';
 import { colors } from '../../utils/styles';
 
-interface Barbershop {
-  id: number;
-  barbershopUrl: string;
-  name: string;
-  address: {
-    street: string;
-    number: string;
-    city: string;
-  };
-  phone: string;
-  rating: number;
-}
-
 const MainScreen: React.FC = () => {
-  const [barbershop, setBarbershop] = useState<Barbershop[]>([]);
-  const [barbershopSearched, setBarbershopSearched] = useState<Barbershop[]>(
+  const { barbershop } = useContext(AppContext);
+  const { signOut } = useAuth();
+  const [barbershopSearched, setBarbershopSearched] = useState<IBarbershop[]>(
     []
   );
-
-  useEffect(() => {
-    if (barbershop.length === 0) {
-      setBarbershop([
-        {
-          id: 1,
-          barbershopUrl: require('../../assets/images/barbearias/b3.jpg'),
-          name: 'Barbearia Teste',
-          address: {
-            street: 'Rua 23 de Maio',
-            number: '358',
-            city: 'Jundiaí',
-          },
-          phone: '( 11 ) 9-9999-9999',
-          rating: 4,
-        },
-        {
-          id: 2,
-          barbershopUrl: require('../../assets/images/barbearias/b2.jpg'),
-          name: 'Barbearia Teste 2',
-          address: {
-            street: 'Rua José Macedo',
-            number: '845',
-            city: 'Jundiaí',
-          },
-          phone: '( 11 ) 9-8670-4456',
-          rating: 5,
-        },
-        {
-          id: 3,
-          barbershopUrl: require('../../assets/images/barbearias/b4.jpg'),
-          name: 'Barbearia Teste 3',
-          address: {
-            street: 'Rua Figueiredo Toledo',
-            number: '108',
-            city: 'Jundiaí',
-          },
-          phone: '( 11 ) 9-4589-9757',
-          rating: 3,
-        },
-      ]);
-    }
-  }, [barbershop]);
 
   function searchedText(text: string) {
     const textUp = text.toUpperCase();
@@ -82,7 +31,7 @@ const MainScreen: React.FC = () => {
     });
     const filtered = arrSearched.filter(
       shop => shop !== undefined
-    ) as Barbershop[];
+    ) as IBarbershop[];
     setBarbershopSearched(filtered);
   }
 
@@ -104,6 +53,7 @@ const MainScreen: React.FC = () => {
         keyExtractor={item => String(item.id)}
         renderItem={({ item }) => <MainCardBarber barbershop={item} />}
       />
+      <Text onPress={signOut}>Sair</Text>
     </SafeAreaView>
   );
 };

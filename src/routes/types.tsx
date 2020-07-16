@@ -2,7 +2,8 @@
 import { RouteProp, CompositeNavigationProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { MaterialBottomTabNavigationProp } from '@react-navigation/material-bottom-tabs';
-
+import { IBarbershop } from '../contexts/types-barbershop';
+import { IBarber } from '../contexts/types-barber';
 // export type LoginStack = {
 //   Login: undefined;
 //   CreateAccount: undefined;
@@ -22,16 +23,8 @@ export type TabStack = {
 export type StackTabDetail = {
   Detail: {
     data: {
-      id: number;
-      barbershopUrl: () => void;
-      name: string;
-      address: {
-        street: string;
-        number: string;
-        city: string;
-      };
-      phone: string;
-      rating: number;
+      barbershop: IBarbershop;
+      barbers: IBarber[];
     };
   };
   Main: TabStack;

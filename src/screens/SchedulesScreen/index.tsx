@@ -8,20 +8,14 @@ import {
 } from 'react-native';
 
 import ScheduleCardBarber from '../../components/ScheduleCardBarber';
+import { useCustumer } from '../../contexts/custumer';
+import { IAppointment } from '../../contexts/types-custumer';
 
 import { colors } from '../../utils/styles';
 
-interface IAppointments {
-  barberShopUrl: string;
-  avatar: string;
-  name: string;
-  day: string;
-  barber: string;
-}
-
 interface IData {
   title: string;
-  data: IAppointments[];
+  data: IAppointment[];
 }
 
 const SectionHeader: React.FC<{ title: string }> = ({ title }) => {
@@ -33,52 +27,31 @@ const SectionHeader: React.FC<{ title: string }> = ({ title }) => {
 };
 
 const SchedulesScreen: React.FC = () => {
-  const [data, setData] = useState<IData[]>([
-    {
-      title: 'Agendamentos',
-      data: [
-        {
-          barberShopUrl: require('../../assets/images/barbearias/b1.jpg'),
-          avatar: require('../../assets/images/barbeiros/b4.jpg'),
-          name: 'Barbearia 1',
-          day: 'Quinta - Feira as 14:00',
-          barber: 'João',
-        },
-        {
-          barberShopUrl: require('../../assets/images/barbearias/b2.jpg'),
-          avatar: require('../../assets/images/barbeiros/b3.jpg'),
-          name: 'Barbearia 2',
-          day: 'Sexta - Feira as 17:00',
-          barber: 'Diego',
-        },
-      ],
-    },
-    {
-      title: 'Histórico',
-      data: [
-        {
-          barberShopUrl: require('../../assets/images/barbearias/b3.jpg'),
-          avatar: require('../../assets/images/barbeiros/b7.jpg'),
-          name: 'Barbearia 3',
-          day: 'Quarta - Feira as 15:00',
-          barber: 'Josias',
-        },
-        {
-          barberShopUrl: require('../../assets/images/barbearias/b4.jpg'),
-          avatar: require('../../assets/images/barbeiros/b6.jpg'),
-          name: 'Barbearia 4',
-          day: 'Sábado as 18:00',
-          barber: 'Rodrigo',
-        },
-      ],
-    },
-  ]);
+  const { appointments } = useCustumer();
+  const [data, setData] = useState<IData[]>([]);
+
+  useEffect(() => {
+    const marked = appointments.filter(
+      appointment => appointment.past === false
+    );
+    const past = appointments.filter(appointment => appointment.past === true);
+    setData([
+      {
+        title: 'Agendamentos',
+        data: marked,
+      },
+      {
+        title: 'Histórico',
+        data: past,
+      },
+    ]);
+  }, [appointments]);
 
   return (
     <SafeAreaView style={styles.container}>
       <SectionList
         sections={data}
-        keyExtractor={(item, index) => item.name + index}
+        keyExtractor={item => String(item.id)}
         renderItem={({ item }) => <ScheduleCardBarber item={item} />}
         renderSectionHeader={({ section: { title } }) => (
           <SectionHeader title={title} />

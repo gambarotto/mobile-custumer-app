@@ -9,112 +9,49 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
+import { IBarbershop } from '../../../contexts/types-barbershop';
 import { colors } from '../../../utils/styles';
-interface Barbershop {
-  id: number;
-  barbershopUrl: string;
-  name: string;
-  address: {
-    street: string;
-    number: string;
-    city: string;
-  };
-  phone: string;
-  rating: number;
-}
-type IIsVisible = () => void;
+import api from '../../../services/api';
+import { IBarber } from '../../../types/barbers';
 
 interface IAvatar {
   id: number;
   avatarUrl(url: string): void;
   name: string;
 }
-interface IGoToDetail {
-  goToDetails(): void;
-}
+
 type Dispatcher<S> = Dispatch<SetStateAction<S>>;
 
 const ModalMainTab: React.FC<{
   setIsVisible: Dispatcher<boolean>;
-  barbershop: Barbershop;
+  barbershop: IBarbershop;
 }> = ({ setIsVisible, barbershop }) => {
-  const [barbers, setBarbers] = useState<IAvatar[]>();
-  const [services, setServices] = useState<string[]>();
+  const [barbers, setBarbers] = useState<IBarber[]>();
   const navigation = useNavigation();
 
   useEffect(() => {
-    setBarbers([
-      {
-        id: 1,
-        avatarUrl: require('../../../assets/images/barbeiros/b1.jpg'),
-        name: 'Jubileu',
-      },
-      {
-        id: 2,
-        avatarUrl: require('../../../assets/images/barbeiros/b2.jpg'),
-        name: 'Sabrino',
-      },
-      {
-        id: 3,
-        avatarUrl: require('../../../assets/images/barbeiros/b3.jpg'),
-        name: 'Jeremias',
-      },
-      {
-        id: 4,
-        avatarUrl: require('../../../assets/images/barbeiros/b4.jpg'),
-        name: 'Juarez',
-      },
-      {
-        id: 5,
-        avatarUrl: require('../../../assets/images/barbeiros/b5.jpg'),
-        name: 'Rodrigo',
-      },
-      {
-        id: 6,
-        avatarUrl: require('../../../assets/images/barbeiros/b6.jpg'),
-        name: 'Diego',
-      },
-      {
-        id: 7,
-        avatarUrl: require('../../../assets/images/barbeiros/b7.jpg'),
-        name: 'Paulo',
-      },
-      {
-        id: 8,
-        avatarUrl: require('../../../assets/images/barbeiros/b8.jpg'),
-        name: 'Doni',
-      },
-      {
-        id: 9,
-        avatarUrl: require('../../../assets/images/barbeiros/b9.jpg'),
-        name: 'Gilmar',
-      },
-    ]);
-  }, []);
-  useEffect(() => {
-    setServices([
-      'Cabelo',
-      'Barba',
-      'Hidratação',
-      'Sombrancelhas',
-      'Relaxamento',
-      'Tintura',
-    ]);
-  }, []);
+    async function loadBarbers() {
+      const response = await api.get(`/stores/${barbershop.id}/employees`);
+      if (response) {
+        setBarbers(response.data);
+      }
+    }
+    loadBarbers();
+  }, [barbershop.id]);
 
   function closeModal() {
     setIsVisible(false);
   }
   function goToDetail() {
     setIsVisible(false);
-    navigation.navigate('Detail', { data: barbershop });
+    navigation.navigate('Detail', { data: { barbershop, barbers } });
   }
   return (
     <View style={styles.container}>
       <View style={styles.containerImage}>
         <Image
           style={styles.imageBarbershop}
-          source={barbershop.barbershopUrl}
+          source={{ uri: barbershop.image.url }}
         />
       </View>
       <View style={styles.containerInfo}>
@@ -122,7 +59,7 @@ const ModalMainTab: React.FC<{
         <Text style={styles.textInfo}>
           {`${barbershop.address.street}, ${barbershop.address.number} -  ${barbershop.address.city}`}
         </Text>
-        <Text style={styles.textInfo}>{`${barbershop.phone}`}</Text>
+        <Text style={styles.textInfo}>{`${barbershop.tel}`}</Text>
         <Text style={styles.textAtendimento}>
           Horário de atendimento: 09:00 - 20:00
         </Text>
@@ -130,10 +67,15 @@ const ModalMainTab: React.FC<{
       <View style={styles.containerServices}>
         <Text style={styles.titleFeatures}>Serviços</Text>
         <FlatList
-          data={services}
-          keyExtractor={item => item}
+          data={barbershop.services}
+          keyExtractor={item => String(item.id)}
           renderItem={({ item }) => (
-            <Text style={styles.textService}>{item}</Text>
+            <View style={styles.containerItemService}>
+              <Text style={styles.textService}>{item.name}</Text>
+              <Text style={styles.textServicePrice}>
+                {item.price ? `R$ ${item.price}` : '-'}
+              </Text>
+            </View>
           )}
           style={styles.flatlistServices}
         />
@@ -146,9 +88,19 @@ const ModalMainTab: React.FC<{
           horizontal={true}
           contentContainerStyle={{ paddingHorizontal: 16 }}
           renderItem={({ item }) => (
-            <View style={styles.containerImageItem}>
-              <Image style={styles.imageBarber} source={item.avatarUrl} />
-              <Text style={styles.textNameBarber}>{item.name}</Text>
+            <View style={styles.containerItemBarber}>
+              <View style={styles.containerImageItem}>
+                <Image
+                  style={styles.imageBarber}
+                  source={{ uri: item.avatar.url }}
+                />
+              </View>
+              <Text
+                style={styles.textNameBarber}
+                ellipsizeMode="tail"
+                numberOfLines={1}>
+                {item.name}
+              </Text>
             </View>
           )}
           style={styles.flatlistBarbers}
@@ -207,17 +159,28 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   containerServices: {
+    paddingHorizontal: 10,
     justifyContent: 'center',
     alignItems: 'center',
   },
   flatlistServices: {
     height: 130,
+    width: '100%',
+  },
+  containerItemService: {
+    paddingVertical: 4,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   textService: {
     fontFamily: 'Comfortaa-Regular',
     fontSize: 12,
     color: colors.secondaryColor,
-    marginTop: 5,
+  },
+  textServicePrice: {
+    fontFamily: 'Comfortaa-Regular',
+    fontSize: 12,
+    color: colors.secondaryColor,
   },
   titleFeatures: {
     fontFamily: 'Anton-Regular',
@@ -231,6 +194,13 @@ const styles = StyleSheet.create({
   },
   flatlistBarbers: {
     marginTop: 10,
+  },
+  containerItemBarber: {
+    height: 100,
+    width: 90,
+    marginRight: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   containerImageItem: {
     height: 60,

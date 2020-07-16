@@ -1,7 +1,7 @@
 import React, { Dispatch, SetStateAction, useState } from 'react';
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
-
+import { addDays } from 'date-fns';
 import { colors } from '../../../utils/styles';
 import { localesPt, themeCalendar } from '../../../config/calendarsConfig';
 LocaleConfig.locales.pt = localesPt;
@@ -43,6 +43,13 @@ const ModalCalendar: React.FC<{
     const outraData = new Date().setDate(time.getDate() + 6);
     return outraData;
   }
+  function selectDay(day: IDay) {
+    const dayAtt = {
+      ...day,
+      timestamp: new Date(addDays(day.timestamp, 1)).getTime(),
+    };
+    setDayMarked(dayAtt);
+  }
 
   function confirmDate() {
     setDaySelectedFunc.setDaySelected(dayMarked);
@@ -56,8 +63,8 @@ const ModalCalendar: React.FC<{
         current={new Date()}
         minDate={new Date()}
         maxDate={maxDays()}
-        onDayPress={day => setDayMarked(day)}
-        monthFormat={'MM/yyyy'}
+        onDayPress={day => selectDay(day)}
+        monthFormat={'MMM/yy'}
         disableMonthChange={true}
         firstDay={1}
         hideDayNames={false}

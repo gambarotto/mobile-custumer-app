@@ -9,7 +9,7 @@ import {
 import Icon from 'react-native-vector-icons/Feather';
 import { RectButton } from 'react-native-gesture-handler';
 
-import AuthContext from '../../contexts/auth';
+import { useAuth } from '../../contexts/auth';
 import { PropsStack } from '../../routes/types';
 //TODO keyboardAvoidingView IOS
 interface ILogin {
@@ -19,7 +19,7 @@ interface ILogin {
 
 const LoginScreen: React.FC<PropsStack> = ({ navigation }) => {
   const [data, setData] = useState<ILogin>({} as ILogin);
-  const { signIn } = useContext(AuthContext);
+  const { signIn } = useAuth();
 
   function handleInputLogin(value: string, type: string) {
     setData({ ...data, [type]: value });

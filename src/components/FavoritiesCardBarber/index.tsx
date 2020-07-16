@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+/* eslint-disable no-shadow */
+import React from 'react';
 import {
-  //TouchableOpacity,
+  TouchableOpacity,
   View,
   Image,
   Text,
@@ -9,44 +10,51 @@ import {
 } from 'react-native';
 import { Rating } from 'react-native-elements';
 
+import { IFavorites } from '../../contexts/types-custumer';
+import { IDayWeek } from '../../contexts/types-barbershop';
 import BarbersPictures from './BarbersPictures';
 import { colors } from '../../utils/styles';
 
-interface item {
-  id: string;
-  name: string;
-}
+const FavoritiesCardBarber: React.FC<{ favorite: IFavorites }> = ({
+  favorite,
+}) => {
+  function getScheduleDay() {
+    const day = new Date().getDay();
+    const scheduleDay = favorite.store.schedule.days_week.map(
+      daySchedule => daySchedule.dayOfWeek === day && (daySchedule as IDayWeek)
+    );
+    const scheduleFiltered: (IDayWeek | any)[] = scheduleDay.filter(
+      day => day !== false
+    );
+    return {
+      initial: scheduleFiltered[0].scheduleParsed[0],
+      final:
+        scheduleFiltered[0].scheduleParsed[
+          scheduleFiltered[0].scheduleParsed.length - 1
+        ],
+    };
+  }
 
-const FavoritiesCardBarber: React.FC = () => {
-  const [services] = useState<item[]>([
-    { id: '1', name: 'Corte Cabelo' },
-    { id: '2', name: 'Hidratação' },
-    { id: '3', name: 'Corte Barba' },
-    { id: '4', name: 'Tintura' },
-    { id: '5', name: 'Sombrancelhas' },
-    { id: '6', name: 'Desenho' },
-    { id: '7', name: 'Degradê' },
-    { id: '8', name: 'Bigode' },
-  ]);
   return (
-    <View style={styles.container}>
+    <TouchableOpacity style={styles.container} activeOpacity={0.6}>
       <View style={styles.containerInfos}>
         <View style={styles.imageContainer}>
           <Image
-            source={require('../../assets/images/barbearias/b3.jpg')}
+            source={{ uri: favorite.store.image.url }}
             style={styles.image}
           />
         </View>
         <View style={styles.containerData}>
-          <Text style={styles.title}>Barbearia Don Corleone</Text>
+          <Text style={styles.title}>{favorite.store.name}</Text>
           <Text style={styles.address}>
-            Av. João Guilher, 809 - Jundiaí - SP
+            {`${favorite.store.address.street}, ${favorite.store.address.number} -  ${favorite.store.address.city}`}
           </Text>
-          <Text style={styles.phone}>(11) 9-9999-9999</Text>
+          <Text style={styles.phone}>{favorite.store.tel}</Text>
           <View style={styles.ratingContainer}>
             <Rating
               type="custom"
               ratingCount={5}
+              startingValue={favorite.store.rating.rating}
               showRating={false}
               imageSize={16}
               ratingBackgroundColor={colors.primaryColorRgba}
@@ -59,23 +67,25 @@ const FavoritiesCardBarber: React.FC = () => {
       </View>
       <View style={styles.containerSchedule}>
         <Text style={styles.textSchedule}>
-          Horário de atendimento 09:00 - 20:00
+          {`Horário de atendimento hoje: ${getScheduleDay().initial} - ${
+            getScheduleDay().final
+          }`}
         </Text>
       </View>
       <View style={styles.containerDataBarbers}>
-        <BarbersPictures />
+        <BarbersPictures barbers={favorite.store.employees} />
         <View style={styles.containerServices}>
           <Text style={styles.titleService}>Serviços</Text>
           <FlatList
-            data={services}
-            keyExtractor={item => item.id}
+            data={favorite.store.services}
+            keyExtractor={item => String(item.id)}
             renderItem={({ item }) => (
               <Text style={styles.textFlat}>{item.name}</Text>
             )}
           />
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 
@@ -139,11 +149,12 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   textSchedule: {
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: 'Comfortaa-Regular',
     color: colors.secondaryColor,
   },
   containerDataBarbers: {
+    flex: 1,
     height: 150,
     width: '100%',
     flexDirection: 'row',
@@ -151,12 +162,13 @@ const styles = StyleSheet.create({
   containerServices: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
   },
   titleService: {
     fontFamily: 'Anton-Regular',
     fontSize: 18,
     color: colors.secondaryColor,
+    marginBottom: 10,
   },
   textFlat: {
     fontFamily: 'Comfortaa-Regular',

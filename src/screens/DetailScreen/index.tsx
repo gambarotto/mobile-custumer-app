@@ -3,12 +3,19 @@ import { View, Image, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Rating } from 'react-native-elements';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useRoute } from '@react-navigation/native';
+import * as Animatable from 'react-native-animatable';
+import { setHours, setMinutes, setSeconds, format } from 'date-fns';
 
+import api from '../../services/api';
+import { useAuth } from '../../contexts/auth';
+import { useCustumer } from '../../contexts/custumer';
 import ModalBarber from '../../components/Modal/ModalBarber';
 import ModalHour from '../../components/Modal/ModalHour';
 import ModalCalendar from '../../components/Modal/ModalCalendar';
-
-import { PropsStack } from '../../routes/types';
+import { IBarber, IAvailables } from '../../contexts/types-barber';
+import { IAppointment } from '../../contexts/types-custumer';
+import { DetailStackRouteProp } from '../../routes/types';
 import { colors } from '../../utils/styles';
 
 interface IBarbers {
@@ -20,10 +27,7 @@ interface IBarbers {
   job_id: number;
   schedule_id: number | null;
 }
-interface IBarber {
-  id: number;
-  name: string;
-}
+
 interface IDay {
   dateString: string;
   day: number;
@@ -37,80 +41,120 @@ interface IData {
   employeeId: number;
   custumerId: number;
 }
-
-const DetailScreen: React.FC<PropsStack> = ({ route }) => {
-  const [rating, setRating] = useState(0);
+interface IRating {
+  id: number;
+  rating: number;
+}
+const DetailScreen: React.FC = () => {
+  const { setAppointments } = useCustumer();
+  const [ratingUser, setRatingUser] = useState<IRating>({} as IRating);
   const [favored, setFavored] = useState(false);
   const [barberIsVisible, setBarberIsVisible] = useState(false);
   const [dayIsVisible, setDayIsVisible] = useState(false);
   const [hourIsVisible, setHourIsVisible] = useState(false);
-  const [barbers, setBarbers] = useState<IBarbers[]>([]);
   const [barberSelected, setBarberSelected] = useState<IBarber>({} as IBarber);
-  const [daySelected, setDaySelected] = useState<IDay | any>();
-  const [hourSelected, setHourSelected] = useState<string>('');
+  const [daySelected, setDaySelected] = useState<IDay>({} as IDay);
+  const [schedule, setSchedule] = useState<IAvailables[]>([]);
+  const [hourSelected, setHourSelected] = useState<IAvailables>(
+    {} as IAvailables
+  );
+
+  const { user } = useAuth();
+  const route = useRoute<DetailStackRouteProp>();
+  const { barbers, barbershop } = route.params.data;
 
   useEffect(() => {
-    setBarbers([
-      {
-        id: 4,
-        name: 'Funcionário 04',
-        email: 'funcionario04@topbarber.com',
-        responsibility: 'Barbeiro',
-        days_off: [3, 5],
-        job_id: 2,
-        schedule_id: null,
-      },
-      {
-        id: 3,
-        name: 'Funcionário 02',
-        email: 'funcionario02@topbarber.com',
-        responsibility: 'Barbeiro',
-        days_off: [2, 4],
-        job_id: 2,
-        schedule_id: 2,
-      },
-      {
-        id: 5,
-        name: 'Funcionário 05',
-        email: 'funcionario05@topbarber.com',
-        responsibility: 'Barbeiro',
-        days_off: [3, 5],
-        job_id: 2,
-        schedule_id: null,
-      },
-      {
-        id: 6,
-        name: 'Funcionário 06',
-        email: 'funcionario06@topbarber.com',
-        responsibility: 'Barbeiro',
-        days_off: [2, 4],
-        job_id: 2,
-        schedule_id: 2,
-      },
-    ]);
-  }, []);
+    //TODO ajustar update de rating
+
+    async function loadRatingCustumerStore() {
+      if (user?.id) {
+        const response = await api(
+          `/avaliation/stores/${barbershop.id}/custumer/${user.id}`
+        );
+        if (response) {
+          setRatingUser(response.data);
+        }
+      }
+    }
+    loadRatingCustumerStore();
+  }, [barbershop.id, user]);
   useEffect(() => {
-    console.log(JSON.stringify(barberSelected));
-  }, [barberSelected]);
+    async function loadScheduleBarber() {
+      const { timestamp } = daySelected;
+      try {
+        const response = await api.get(
+          `/employees/${barberSelected.id}/availables?date=${timestamp}`
+        );
+        if (response) {
+          setSchedule(response.data);
+        }
+      } catch (error) {
+        console.log(JSON.stringify(error));
+      }
+    }
+    if (daySelected.timestamp) {
+      loadScheduleBarber();
+    }
+  }, [barberSelected.id, daySelected]);
+
+  function handleRating(value: number) {
+    setRatingUser({ ...ratingUser, rating: value });
+  }
+  async function attAppointmentsInContext() {
+    if (user) {
+      const response = await api.get<IAppointment[]>(
+        `/appointments/custumers/${user.id}`
+      );
+      setAppointments(response.data);
+    }
+  }
+
+  async function handleConfirm() {
+    const [hour, minute] = hourSelected.time.split(':');
+    const value: Date | string = setSeconds(
+      setMinutes(setHours(daySelected.timestamp, Number(hour)), Number(minute)),
+      0
+    );
+    const data = {
+      date: format(value, "yyyy-MM-dd'T'HH:mm:ssxxx"),
+      employee_id: barberSelected.id,
+      custumer_id: user?.id,
+    };
+    try {
+      const response = await api.post(
+        `/stores/${barbershop.id}/appointments`,
+        data
+      );
+      console.log('response --> ', JSON.stringify(response.data));
+      attAppointmentsInContext();
+    } catch (error) {
+      console.log('error --> ', JSON.stringify(error));
+    }
+  }
+  // async function handleFavorite(){
+  //   const response = await api.post()
+  // }
   return (
     <View style={styles.container}>
       <View style={styles.cntnrImage}>
-        <Image style={styles.image} source={route.params.data.barbershopUrl} />
+        <Image style={styles.image} source={{ uri: barbershop.image.url }} />
       </View>
       <View style={styles.cntnrInfo}>
-        <TouchableOpacity
-          style={[styles.cntnrFav, favored && styles.cntnrFavTrue]}
-          onPress={() => setFavored(!favored)}>
-          <Icon
-            name="grade"
-            size={24}
-            color={favored ? colors.secondaryColor : colors.primaryColor}
-          />
-        </TouchableOpacity>
+        <Animatable.View
+          animation="bounceIn"
+          style={[styles.cntnrFav, favored && styles.cntnrFavTrue]}>
+          <TouchableOpacity onPress={() => setFavored(!favored)}>
+            <Icon
+              name="grade"
+              size={24}
+              color={favored ? colors.secondaryColor : colors.primaryColor}
+            />
+          </TouchableOpacity>
+        </Animatable.View>
         <View style={styles.cntnrTextInfos}>
-          <Text style={styles.textInfosTitle}>{route.params.data.name}</Text>
+          <Text style={styles.textInfosTitle}>{barbershop.name}</Text>
           <Text style={styles.textInfos}>
-            {`${route.params.data.address.street}, ${route.params.data.address.number} -  ${route.params.data.address.city}`}
+            {`${barbershop.address.street}, ${barbershop.address.number} -  ${barbershop.address.city}`}
           </Text>
           <Text style={styles.textInfos}>
             Horário de Atendimento: 09:00 - 21:30
@@ -123,10 +167,10 @@ const DetailScreen: React.FC<PropsStack> = ({ route }) => {
           <Rating
             type="custom"
             ratingCount={5}
-            startingValue={rating}
+            startingValue={ratingUser.rating}
             showRating={false}
             imageSize={20}
-            onFinishRating={value => setRating(value)}
+            onFinishRating={value => handleRating(value)}
             ratingBackgroundColor={colors.secondaryColor}
             ratingColor="#992929"
             tintColor="#191d21"
@@ -137,7 +181,7 @@ const DetailScreen: React.FC<PropsStack> = ({ route }) => {
           <Rating
             type="custom"
             ratingCount={5}
-            startingValue={4}
+            startingValue={barbershop.rating.rating}
             showRating={false}
             imageSize={20}
             ratingBackgroundColor={colors.secondaryColor}
@@ -171,7 +215,11 @@ const DetailScreen: React.FC<PropsStack> = ({ route }) => {
           <View style={styles.cntnrButtonDay}>
             <Text style={styles.titleButtons}>Dia</Text>
             <TouchableOpacity
-              style={styles.buttonDay}
+              disabled={barberSelected.name ? false : true}
+              style={[
+                styles.buttonDay,
+                !barberSelected.name && styles.buttonNull,
+              ]}
               onPress={() => setDayIsVisible(true)}>
               <Text style={styles.textButtons}>{daySelected?.dateString}</Text>
             </TouchableOpacity>
@@ -179,35 +227,49 @@ const DetailScreen: React.FC<PropsStack> = ({ route }) => {
           <View style={styles.cntnrButtonHour}>
             <Text style={styles.titleButtons}>Horário</Text>
             <TouchableOpacity
-              style={styles.buttonHour}
+              disabled={daySelected?.dateString ? false : true}
+              style={[
+                styles.buttonHour,
+                !daySelected?.dateString && styles.buttonNull,
+              ]}
               onPress={() => setHourIsVisible(true)}>
-              <Text style={styles.textButtons}>{hourSelected}</Text>
+              <Text style={styles.textButtons}>{hourSelected.time}</Text>
             </TouchableOpacity>
           </View>
         </View>
       </View>
       <View style={styles.cntnrConfirmButton}>
-        <TouchableOpacity style={styles.confirmButton}>
+        <TouchableOpacity style={styles.confirmButton} onPress={handleConfirm}>
           <Text style={styles.textConfirmButton}>Confirmar Agendamento</Text>
         </TouchableOpacity>
       </View>
-      <Modal isVisible={barberIsVisible}>
+      <Modal
+        isVisible={barberIsVisible}
+        animationIn="pulse"
+        animationOut="fadeOut">
         <ModalBarber
           setBarberIsVisible={setBarberIsVisible}
           barbers={barbers}
           setBarberSelectedFunc={{ setBarberSelected, barberSelected }}
         />
       </Modal>
-      <Modal isVisible={hourIsVisible}>
-        <ModalHour
-          setHourIsVisible={setHourIsVisible}
-          setHourSelectedFunc={{ hourSelected, setHourSelected }}
-        />
-      </Modal>
-      <Modal isVisible={dayIsVisible}>
+      <Modal
+        isVisible={dayIsVisible}
+        animationIn="pulse"
+        animationOut="fadeOut">
         <ModalCalendar
           setDayIsVisible={setDayIsVisible}
           setDaySelectedFunc={{ setDaySelected, daySelected }}
+        />
+      </Modal>
+      <Modal
+        isVisible={hourIsVisible}
+        animationIn="pulse"
+        useNativeDriver={true}>
+        <ModalHour
+          setHourIsVisible={setHourIsVisible}
+          setHourSelectedFunc={{ hourSelected, setHourSelected, schedule }}
+          barberSelected={barberSelected}
         />
       </Modal>
     </View>
@@ -327,7 +389,7 @@ const styles = StyleSheet.create({
   buttonBarber: {
     height: 50,
     width: 90,
-    borderRadius: 4,
+    borderRadius: 25,
     borderWidth: 2,
     borderColor: colors.secondaryColor,
     justifyContent: 'center',
@@ -340,11 +402,14 @@ const styles = StyleSheet.create({
   buttonDay: {
     height: 50,
     width: 110,
-    borderRadius: 4,
+    borderRadius: 25,
     borderWidth: 2,
     borderColor: colors.secondaryColor,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  buttonNull: {
+    borderColor: '#333',
   },
   cntnrButtonHour: {
     justifyContent: 'center',
@@ -353,7 +418,7 @@ const styles = StyleSheet.create({
   buttonHour: {
     height: 50,
     width: 90,
-    borderRadius: 4,
+    borderRadius: 25,
     borderWidth: 2,
     borderColor: colors.secondaryColor,
     justifyContent: 'center',
@@ -380,7 +445,7 @@ const styles = StyleSheet.create({
     flex: 1,
     maxHeight: 60,
     borderRadius: 30,
-    backgroundColor: '#c4c4c4',
+    backgroundColor: colors.secondaryColor,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -391,18 +456,3 @@ const styles = StyleSheet.create({
   },
 });
 export default DetailScreen;
-/**
- * <View style={styles.ratingContainer}>
-          <Rating
-            type="custom"
-            ratingCount={5}
-            startingValue={barbershop.rating}
-            showRating={false}
-            imageSize={16}
-            ratingBackgroundColor={colors.primaryColorRgba}
-            ratingColor="#992929"
-            readonly={true}
-            tintColor="#191d21"
-          />
-        </View>
- */
